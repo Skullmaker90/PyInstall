@@ -96,13 +96,13 @@ def get_wordpress(url):
   tar = tarfile.open('/home/latest.tar.gz')
   tar.extractall(path=config('wp_extract_path'))
 
-def set_database(wp_pass):
+def set_database(root_pass, wp_pass):
   comm_list = ("CREATE DATABASE wordpress",
 		"CREATE USER 'wp_user'@'localhost'",
 		"SET PASSWORD FOR 'wp_user'@'localhost' = PASSWORD('%s')" % (wp_pass),
 		"GRANT ALL PRIVILEGES ON wordpress.* TO 'wp_user'@'localhost' IDENTIFIED BY '%s'" % (wp_pass),
 		"FLUSH PRIVILEGES")
-  mysql_bash_engine(comm_list, auth=True, wp_pass=wp_pass)
+  mysql_bash_engine(comm_list, auth=True, root_pass=root_pass)
 
 def set_config(wp_pass):
   path = config('wp_extract_path') + '/wordpress'
@@ -132,10 +132,10 @@ def mysql_secure(root_pass):
 		 "FLUSH PRIVILEGES")
   mysql_bash_engine(secure_list)
 
-def mysql_bash_engine(commands, auth=False, wp_pass=None):
+def mysql_bash_engine(commands, auth=False, root_pass=None):
   q = 'mysql'
   if auth:
-    q = q + (" -uroot --password='%s'" % (wp_pass))
+    q = q + (" -uroot --password='%s'" % (root_pass))
   for command in commands:
     os.system('%s -e "%s"' % (q, command))
 
