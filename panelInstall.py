@@ -11,35 +11,33 @@ parser = ConfigParser.ConfigParser()
 parser.read('default-config.cfg')
 
 class ConfigOptions(object):
-  def __init__(self, parserObj):
+  def __init__(self, parserObj, service):
     self.conf_dict = {}
-    self._populate(parserObj)
+    self._populate(parserObj, service)
 
   def _populate (self, parserObj):
-    for item in parserObj.items('default'):
+    for item in parserObj.items('%s' % (service)):
       self.conf_dict[item[0]] = item[1]
 
   def __call__(self, key):
     return self.conf_dict[key]
 
-config = ConfigOptions(parser)
-
 # cPanel
 
-def cPanel():
-  url = 'https://securedownloads.cpanel.net/latest'
+def cPanel(config):
+  url = config('dl_url')
   os.system("yum install -y perl gcc")
   os.chdir(config('dl_path'))
   os.system("curl -o latest -L %s && sh latest" % (url))
 
 # Plesk
 
-def plesk():
-  url = 'http://autoinstall.plesk.com/plesk-installer'
-  release = 'plesk'
-  build = ('cd /home && wget %s && sh plesk-installer ' % (url) +
-           '--select-product-id %s ' % (release) +
-           '--select-release-latest' +
+def plesk(config):
+  url = config('dl_url')
+  release = config('release')
+  build = ('cd %s && wget %s && sh plesk-installer ' % (config('dl_path'), url) +
+           '--select-product-id plesk ' +
+           '--select-release-%s' % (release) +
            '--installation-type Full ' +
            '--notify-email service@cari.net')
   os.system(build)
@@ -47,7 +45,7 @@ def plesk():
 
 # LAMP Stack
 
-def LAMP(root_pass=None):
+def LAMP(config, root_pass=None):
   if not root_pass:
     root_pass = getpass("What pass would you like to use for mysql root account?: ")
   stack = (apache, mysql, php)
@@ -56,6 +54,8 @@ def LAMP(root_pass=None):
       block(root_pass)
     else:
       block()
+  for package in config('add_packages'):
+    yum_engine(package)
 
 def apache():
   services = ('httpd',)
@@ -77,26 +77,28 @@ def yum_engine(services):
 
 # Wordpress
 
-def wordpress():
-  url = 'http://wordpress.org/latest.tar.gz'
+def wordpress(config):
+  url = config('dl_url')
   root_pass = getpass("Please choose a password for the ROOT MySQL user: ")
   wp_pass = getpass("Please choose a password for the Wordpress MySQL user: ")
-  LAMP(root_pass)
-  get_wordpress(url)
+  LAMP(config, root_pass=root_pass)
+  get_wordpress(url, config('extract_path'))
   set_database(root_pass, wp_pass)
-  set_config(wp_pass)
+  set_config(config('wp_user'), 
+             config('wp_database'), 
+             wp_pass, 
+             config('extract_path'))
   os.system("cp -r /home/wordpress/* /var/www/html")
-  yum_engine(('php-gd',))
   os.system('touch /var/www/html/.htaccess')
   with open('/var/www/html/.htaccess', 'r+') as f:
     f.write('DirectoryIndex index.php index.htm')
   port_engine(wordpress)
   os.system("service httpd restart")
   
-def get_wordpress(url):
-  os.system("cd %s && wget %s" % (config('dl_path'), url))
-  tar = tarfile.open('/home/latest.tar.gz')
-  tar.extractall(path=config('wp_extract_path'))
+def get_wordpress(url, path):
+  os.system("cd %s && wget %s" % (path, url))
+  tar = tarfile.open('%s/latest.tar.gz' % (path))
+  tar.extractall(path=path)
 
 def set_database(root_pass, wp_pass):
   comm_list = ("CREATE DATABASE wordpress",
@@ -106,10 +108,10 @@ def set_database(root_pass, wp_pass):
 		"FLUSH PRIVILEGES")
   mysql_bash_engine(comm_list, auth=True, root_pass=root_pass)
 
-def set_config(wp_pass):
-  path = config('wp_extract_path') + '/wordpress'
-  settings = {'database_name_here': config('wp_database'), 
-		'username_here': config('wp_user'),
+def set_config(wp_user, wp_database, wp_pass, path):
+  path = path + '/wordpress'
+  settings = {'database_name_here': wp_database, 
+		'username_here': wp_user,
 		'password_here': wp_pass}
   os.system("cp %s/wp-config-sample.php %s/wp-config.php" % (path, path))
   replace_engine(path + '/wp-config.php', settings)
@@ -159,7 +161,7 @@ def populate(hfile, hname, ip):
   with open(hfile, 'a') as f:
     f.write('%s	%s' % (ip, hname))
 
-def fqdn_check():
+def fqdn_check(config):
   info = get_info()
   if os.stat(info[0]).st_size <= 158:
     if (config('fqdn_hostname') == 'default') and (config('fqdn_ip') == 'default'):
@@ -189,9 +191,11 @@ def main():
   print display
   choice = int(raw_input("Choice: "))
   if 1 <= choice <= (len(options)):
-    fqdn_check()
-    yum_engine(('wget',))
-    options[choice-1][2]()
+    core_config = ConfigOptions(parser, 'Core')
+    serv_config = ConfigOptions(parser, options[choice-1][0])
+    fqdn_check(core_config)
+    os.system('yum update -y && yum install -y wget')
+    options[choice-1][2](serv_config)
   else:
     print("Please select a valid menu option.\n\n\n")
     main()
