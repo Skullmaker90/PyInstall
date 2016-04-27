@@ -43,7 +43,7 @@ def plesk():
            '--installation-type Full ' +
            '--notify-email service@cari.net')
   os.system(build)
-  os.system("iptables -I INPUT 2 -p tcp --dport 8443 -j ACCEPT")
+  port_engine(plesk)
 
 # LAMP Stack
 
