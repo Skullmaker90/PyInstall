@@ -47,8 +47,9 @@ def plesk():
 
 # LAMP Stack
 
-def LAMP():
-  root_pass = getpass("What pass would you like to use for mysql root account?: ")
+def LAMP(root_pass=None):
+  if not root_pass:
+    root_pass = getpass("What pass would you like to use for mysql root account?: ")
   stack = (apache, mysql, php)
   for block in stack:
     if block is mysql:
@@ -78,8 +79,9 @@ def yum_engine(services):
 
 def wordpress():
   url = 'http://wordpress.org/latest.tar.gz'
+  root_pass = getpass("Please choose a password for the ROOT MySQL user: ")
   wp_pass = getpass("Please choose a password for the Wordpress MySQL user: ")
-  LAMP()
+  LAMP(root_pass)
   get_wordpress(url)
   set_database(root_pass, wp_pass)
   set_config(wp_pass)
@@ -145,7 +147,7 @@ def port_engine(service):
   service_ports = {plesk: ['8443'], LAMP: ['80'], wordpress: ['80']}
   if type(service) == types.FunctionType:
     for port in service_ports[service]:
-      os.system('iptables -I INPUT -p tcp --dport %s -j ACCEPT' % (port))
+      os.system('iptables -I INPUT 3 -p tcp --dport %s -j ACCEPT' % (port))
 
 def get_info():
   hname = socket.gethostname()
