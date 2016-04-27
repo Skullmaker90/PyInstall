@@ -3,15 +3,33 @@ import socket
 import fcntl
 import struct
 import tarfile
+import types
+import ConfigParser
 from getpass import getpass
+
+parser = ConfigParser.ConfigParser()
+parser.read('default-config.cfg')
+
+class ConfigOptions(object):
+  def __init__(self, parserObj):
+    self.conf_dict = {}
+    self._populate(parserObj)
+
+  def _populate (self, parserObj):
+    for item in parserObj.items('default'):
+      self.conf_dict[item[0]] = item[1]
+
+  def __call__(self, key):
+    return self.conf_dict[key]
+
+config = ConfigOptions(parser)
 
 # cPanel
 
 def cPanel():
   url = 'https://securedownloads.cpanel.net/latest'
-  path = '/home'
   os.system("yum install -y perl gcc")
-  os.chdir(path)
+  os.chdir(config('dl_path'))
   os.system("curl -o latest -L %s && sh latest" % (url))
 
 # Plesk
@@ -60,10 +78,9 @@ def yum_engine(services):
 
 def wordpress():
   url = 'http://wordpress.org/latest.tar.gz'
-  ex_path = '/home'
   wp_pass = getpass("Please choose a password for the Wordpress MySQL user: ")
   LAMP()
-  get_wordpress(url, ex_path)
+  get_wordpress(url)
   set_database(wp_pass)
   set_config(wp_pass)
   os.system("cp -r /home/wordpress/* /var/www/html")
@@ -71,13 +88,13 @@ def wordpress():
   os.system('touch /var/www/html/.htaccess')
   with open('/var/www/html/.htaccess', 'r+') as f:
     f.write('DirectoryIndex index.php index.htm')
-  os.system('iptables -I INPUT 3 -p tcp --dport 80 -j ACCEPT')
+  port_engine(wordpress)
   os.system("service httpd restart")
   
-def get_wordpress(url, ex_path):
-  os.system("cd /home && wget %s" % (url))
+def get_wordpress(url):
+  os.system("cd %s && wget %s" % (config('dl_path'), url))
   tar = tarfile.open('/home/latest.tar.gz')
-  tar.extractall(path=ex_path)
+  tar.extractall(path=config('wp_extract_path'))
 
 def set_database(wp_pass):
   comm_list = ("CREATE DATABASE wordpress",
@@ -88,9 +105,9 @@ def set_database(wp_pass):
   mysql_bash_engine(comm_list, auth=True, wp_pass=wp_pass)
 
 def set_config(wp_pass):
-  path = '/home/wordpress'
-  settings = {'database_name_here': 'wordpress', 
-		'username_here': 'wp_user',
+  path = config('wp_extract_path') + '/wordpress'
+  settings = {'database_name_here': config('wp_database'), 
+		'username_here': config('wp_user'),
 		'password_here': wp_pass}
   os.system("cp %s/wp-config-sample.php %s/wp-config.php" % (path, path))
   replace_engine(path + '/wp-config.php', settings)
@@ -143,7 +160,10 @@ def populate(hfile, hname, ip):
 def fqdn_check():
   info = get_info()
   if os.stat(info[0]).st_size <= 158:
-    populate(info[0], info[1], info[2])
+    if (config('fqdn_hostname') == 'default') and (config('fqdn_ip') == 'default'):
+      populate(info[0], info[1], info[2])
+    else:
+      populate(info[0], config('fqdn_hostname'), config('fqdn_ip'))
 
 def get_ip(ifname):
   s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
