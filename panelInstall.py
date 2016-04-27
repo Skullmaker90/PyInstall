@@ -81,7 +81,7 @@ def wordpress():
   wp_pass = getpass("Please choose a password for the Wordpress MySQL user: ")
   LAMP()
   get_wordpress(url)
-  set_database(wp_pass)
+  set_database(root_pass, wp_pass)
   set_config(wp_pass)
   os.system("cp -r /home/wordpress/* /var/www/html")
   yum_engine(('php-gd',))
