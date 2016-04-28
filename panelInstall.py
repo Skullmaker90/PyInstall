@@ -4,38 +4,28 @@ import fcntl
 import struct
 import tarfile
 import types
-import ConfigParser
+from ast import literal_eval
 from getpass import getpass
 
-parser = ConfigParser.ConfigParser()
-parser.read('default-config.cfg')
-
-class ConfigOptions(object):
-  def __init__(self, parserObj, service):
-    self.conf_dict = {}
-    self._populate(parserObj, service)
-
-  def _populate (self, parserObj):
-    for item in parserObj.items('%s' % (service)):
-      self.conf_dict[item[0]] = item[1]
-
-  def __call__(self, key):
-    return self.conf_dict[key]
+def readConfig(path, service):
+  with open(path, 'r') as f:
+    config = literal_eval(f.read())
+    return config[service]
 
 # cPanel
 
 def cPanel(config):
-  url = config('dl_url')
+  url = config['dl_url']
   os.system("yum install -y perl gcc")
-  os.chdir(config('dl_path'))
+  os.chdir(config['dl_path'])
   os.system("curl -o latest -L %s && sh latest" % (url))
 
 # Plesk
 
 def plesk(config):
-  url = config('dl_url')
-  release = config('release')
-  build = ('cd %s && wget %s && sh plesk-installer ' % (config('dl_path'), url) +
+  url = config['dl_url']
+  release = config['release']
+  build = ('cd %s && wget %s && sh plesk-installer ' % (config['dl_path'], url) +
            '--select-product-id plesk ' +
            '--select-release-%s' % (release) +
            '--installation-type Full ' +
@@ -54,8 +44,9 @@ def LAMP(config, root_pass=None):
       block(root_pass)
     else:
       block()
-  for package in config('add_packages'):
-    yum_engine(package)
+  if config['add_packages'] is not 'None':
+    for package in config['add_packages']:
+      yum_engine(package)
 
 def apache():
   services = ('httpd',)
@@ -78,16 +69,16 @@ def yum_engine(services):
 # Wordpress
 
 def wordpress(config):
-  url = config('dl_url')
+  url = config['dl_url']
   root_pass = getpass("Please choose a password for the ROOT MySQL user: ")
   wp_pass = getpass("Please choose a password for the Wordpress MySQL user: ")
   LAMP(config, root_pass=root_pass)
-  get_wordpress(url, config('extract_path'))
+  get_wordpress(url, config['extract_path'])
   set_database(root_pass, wp_pass)
-  set_config(config('wp_user'), 
-             config('wp_database'), 
+  set_config(config['wp_user'], 
+             config['wp_database'], 
              wp_pass, 
-             config('extract_path'))
+             config['extract_path'])
   os.system("cp -r /home/wordpress/* /var/www/html")
   os.system('touch /var/www/html/.htaccess')
   with open('/var/www/html/.htaccess', 'r+') as f:
@@ -164,10 +155,10 @@ def populate(hfile, hname, ip):
 def fqdn_check(config):
   info = get_info()
   if os.stat(info[0]).st_size <= 158:
-    if (config('fqdn_hostname') == 'default') and (config('fqdn_ip') == 'default'):
+    if (config['fqdn_hostname'] == 'default') and (config['fqdn_ip'] == 'default'):
       populate(info[0], info[1], info[2])
     else:
-      populate(info[0], config('fqdn_hostname'), config('fqdn_ip'))
+      populate(info[0], config['fqdn_hostname'], config['fqdn_ip'])
 
 def get_ip(ifname):
   s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -180,6 +171,7 @@ def get_ip(ifname):
 # Main
 
 def main():
+  conf_path = '/programming/Python/Pyinstall/default.cfg'
   print("Please select an option to install.\n")
   options = [['cPanel', '1', cPanel], 
              ['Plesk', '2', plesk], 
@@ -191,11 +183,11 @@ def main():
   print display
   choice = int(raw_input("Choice: "))
   if 1 <= choice <= (len(options)):
-    core_config = ConfigOptions(parser, 'Core')
-    serv_config = ConfigOptions(parser, options[choice-1][0])
-    fqdn_check(core_config)
+    core_conf = readConfig(conf_path, 'core')
+    service_conf = readConfig(conf_path, options[choice - 1][0])
+    fqdn_check(core_conf)
     os.system('yum update -y && yum install -y wget')
-    options[choice-1][2](serv_config)
+    options[choice-1][2](service_conf)
   else:
     print("Please select a valid menu option.\n\n\n")
     main()
