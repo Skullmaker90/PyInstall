@@ -27,7 +27,7 @@ def plesk(config):
   release = config['release']
   build = ('cd %s && wget %s && sh plesk-installer ' % (config['dl_path'], url) +
            '--select-product-id plesk ' +
-           '--select-release-%s' % (release) +
+           '--select-release-%s ' % (release) +
            '--installation-type Full ' +
            '--notify-email service@cari.net')
   os.system(build)
