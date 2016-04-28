@@ -44,9 +44,7 @@ def LAMP(config, root_pass=None):
       block(root_pass)
     else:
       block()
-  if config['add_packages'] is not 'None':
-    for package in config['add_packages']:
-      yum_engine(package)
+  yum_engine(config['add_packages'])
 
 def apache():
   services = ('httpd',)
@@ -62,9 +60,10 @@ def php():
   services = ('php', 'php-mysql',)
   yum_engine(services)
 
-def yum_engine(services):
-  for s in services:
-    os.system('yum install -y %s' % (s))
+def yum_engine(packages):
+  for package in packages:
+    if package not None:
+      os.system('yum install -y %s' % (s))
 
 # Wordpress
 
