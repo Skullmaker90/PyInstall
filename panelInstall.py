@@ -7,7 +7,6 @@ import types
 from ast import literal_eval
 from getpass import getpass
 
-
 def readConfig(path, service):
   with open(path, 'r') as f:
     config = literal_eval(f.read())
