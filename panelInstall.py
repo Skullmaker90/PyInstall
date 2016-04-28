@@ -45,6 +45,7 @@ def LAMP(config, root_pass=None):
     else:
       block()
   yum_engine(config['add_packages'])
+  port_engine(LAMP)
 
 def apache():
   services = ('httpd',)
@@ -62,8 +63,8 @@ def php():
 
 def yum_engine(packages):
   for package in packages:
-    if package not None:
-      os.system('yum install -y %s' % (s))
+    if package is not None:
+      os.system('yum install -y %s' % (package))
 
 # Wordpress
 
@@ -170,7 +171,7 @@ def get_ip(ifname):
 # Main
 
 def main():
-  conf_path = '/programming/Python/Pyinstall/default.cfg'
+  conf_path = './default.cfg'
   print("Please select an option to install.\n")
   options = [['cPanel', '1', cPanel], 
              ['Plesk', '2', plesk], 
