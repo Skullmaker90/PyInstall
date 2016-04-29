@@ -5,6 +5,9 @@ from libs.engines import system, port, yum
 
 def Webmin(config):
   urls = config['dl_url']
+
+  packages = ('wget', 'perl', 'perl-Net-SSLeay', 'openssl', 'perl-IO-Tty')
+  yum(packages)
   for url in urls:
     os.system("wget %s" % (url))
   system("rpm --import jcameron-key.asc")
