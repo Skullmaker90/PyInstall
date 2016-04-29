@@ -11,19 +11,24 @@ def yum(packages):
 
 # Port Engines
 
-def port6(ports, table='INPUT', action='ACCEPT', proto='tcp'):
-  for port in ports:
-    system("iptables -I %s -p %s --dport %s -j %s" % (table,
-                                                      proto,
-                                                      port,
-                                                      action))
+class Port_engine(object):
+  def __init__(self, version):
+    self.defaults = None
+    self.command = None
+    self._ver_check(version)
 
-def port7(ports, zone='public', action='add', proto='tcp'):
-  for port in ports:
-    system("firewall-cmd --zone=%s --%s-port=%s/%s --permanent" % (zone,
-                                                                   action,
-                                                                   port,
-                                                                   proto))
+  def _ver_check(self, version):
+    if version[0] == '6':
+      self.defaults = {'table': 'INPUT', 'action': 'ACCEPT', 'proto': 'tcp'}
+      self.command = "iptables -I %(table)s -p %(proto)s --dport %(port)s -j %(action)s"
+    else:
+      self.defaults = {'table': 'public', 'action': 'add', 'proto': 'tcp'}
+      self.command = "firewall-cmd --zone=%(table)s --%(action)s-port=%(port)s/%(proto)s --permanent"
+
+  def __call__(self, ports):
+    for port in ports:
+      self.defaults['port'] = port
+      print(self.command % self.defaults)
 
 # System Engine (By far the most important.)
 
