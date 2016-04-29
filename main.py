@@ -17,8 +17,8 @@ class Config(object):
     self._populate(path, service)
 
   def _populate(self, path, service):
-    self.Core = readConfig(path, 'core')
-    self.Service = readConfig(path, service)
+    self.Core = readConfig(path)['core']
+    self.Service = readConfig(path)[service]
 
 # Main
 
