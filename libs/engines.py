@@ -13,7 +13,7 @@ def yum(packages):
 
 def port(ports, table='INPUT', action='ACCEPT'):
   for port in ports:
-    system("iptables -I %s --p tcp --dport %s -j %s" % (table,
+    system("iptables -I %s -p tcp --dport %s -j %s" % (table,
                                                         port,
                                                         action))
 
