@@ -9,13 +9,21 @@ def yum(packages):
   for package in packages:
     system("yum install -y %s" % package)
 
-# Port Engine
+# Port Engines
 
-def port(ports, table='INPUT', action='ACCEPT'):
+def port6(ports, table='INPUT', action='ACCEPT', proto='tcp'):
   for port in ports:
-    system("iptables -I %s -p tcp --dport %s -j %s" % (table,
-                                                        port,
-                                                        action))
+    system("iptables -I %s -p %s --dport %s -j %s" % (table,
+                                                      proto,
+                                                      port,
+                                                      action))
+
+def port7(ports, zone='public', action='add', proto='tcp'):
+  for port in ports:
+    system("firewall-cmd --zone=%s --%s-port=%s/%s --permanent" % (zone,
+                                                                   action,
+                                                                   port,
+                                                                   proto))
 
 # System Engine (By far the most important.)
 
