@@ -28,7 +28,7 @@ class Port_engine(object):
   def __call__(self, ports):
     if type(ports) is not types.TupleType:
       self.defaults['port'] = port
-      os.system(self.command % self.defaults
+      os.system(self.command % self.defaults)
     else:
       for port in ports:
         self.defaults['port'] = port
