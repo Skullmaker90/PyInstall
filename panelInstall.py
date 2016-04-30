@@ -1,5 +1,8 @@
 import os
-from libs.engines import system, port, yum
+import platform
+from libs.engines import system, Port_engine, yum
+
+port = Port_engine(platform.dist()[0])
 
 # Webmin
 
