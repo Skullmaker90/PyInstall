@@ -28,7 +28,7 @@ class Port_engine(object):
   def __call__(self, ports):
     for port in ports:
       self.defaults['port'] = port
-      print(self.command % self.defaults)
+      os.system(self.command % self.defaults)
 
 # System Engine (By far the most important.)
 
