@@ -30,7 +30,7 @@ def cPanel(config):
 def Plesk(config):
   url = config['dl_url']
   release = config['release']
-  build = ('cd %s && wget %s && sh plesk-installer ' % (config['dl_path'], url) +
+  build = ('cd %s && curl -O %s && sh plesk-installer ' % (config['dl_path'], url) +
            '--select-product-id plesk ' +
            '--select-release-%s ' % (release) +
            '--installation-type Full ' +
