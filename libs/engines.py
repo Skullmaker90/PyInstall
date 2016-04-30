@@ -23,12 +23,16 @@ class Port_engine(object):
       self.command = "iptables -I %(table)s -p %(proto)s --dport %(port)s -j %(action)s"
     else:
       self.defaults = {'table': 'public', 'action': 'add', 'proto': 'tcp'}
-      self.command = "firewall-cmd --zone=%(table)s --%(action)s-port=%(port)s/%(proto)s --permanent"
+      self.command = "firewall-cmd --zone=%(table)s --%(action)s-port=%(port)s/%(proto)s --permanent && firewall-cmd --reload"
 
   def __call__(self, ports):
-    for port in ports:
+    if type(ports) is not types.TupleType:
       self.defaults['port'] = port
-      os.system(self.command % self.defaults)
+      os.system(self.command % self.defaults
+    else:
+      for port in ports:
+        self.defaults['port'] = port
+        os.system(self.command % self.defaults)
 
 # System Engine (By far the most important.)
 
