@@ -2,6 +2,7 @@ import os
 from ast import literal_eval
 
 from panelInstall import cPanel, Plesk, Webmin
+from cmsInstall import LNMP
 from libs.libs import fqdn_check
 from libs.engines import system
 
@@ -27,7 +28,8 @@ def main():
   print("Please select an option to install.\n")
   options = [['cPanel', '1', cPanel], 
              ['Plesk', '2', Plesk],
-             ['Webmin', '3', Webmin]]
+             ['Webmin', '3', Webmin],
+             ['LNMP Stack', '4', LNMP]]
   display = ''
   for opt in options:
     display = display + ('%s :: %s\n' % (opt[0], opt[1]))
