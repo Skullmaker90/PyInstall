@@ -1,16 +1,8 @@
 import os
-import socket
-import fcntl
-import struct
-import tarfile
 import types
-from ast import literal_eval
 from getpass import getpass
 
-def readConfig(path, service):
-  with open(path, 'r') as f:
-    config = literal_eval(f.read())
-    return config[service]
+from libs.engines import mysql, yum, Port_engine, system
 
 # LNMP Stack
 
@@ -108,71 +100,27 @@ def mysql_secure(root_pass):
 		 "DROP USER ''@'%s'" % (hname),
 		 "DROP DATABASE test",
 		 "FLUSH PRIVILEGES")
-  mysql_bash_engine(secure_list)
+  mysql(secure_list)
 
-def mysql_bash_engine(commands, auth=False, root_pass=None):
-  q = 'mysql'
-  if auth:
-    q = q + (" -uroot --password='%s'" % (root_pass))
-  for command in commands:
-    os.system('%s -e "%s"' % (q, command))
+# Adding mainline repo
 
-# Networking
-
-def port_engine(service):
-  service_ports = {plesk: ['8443'], LAMP: ['80'], wordpress: ['80']}
-  if type(service) == types.FunctionType:
-    for port in service_ports[service]:
-      os.system('iptables -I INPUT 3 -p tcp --dport %s -j ACCEPT' % (port))
-
-def get_info():
-  hname = socket.gethostname()
-  hfile = '/etc/hosts'
-  ip = get_ip('eth0')
-  return (hfile, hname, ip)
-
-def populate(hfile, hname, ip):
-  with open(hfile, 'a') as f:
-    f.write('%s	%s' % (ip, hname))
-
-def fqdn_check(config):
-  info = get_info()
-  if os.stat(info[0]).st_size <= 158:
-    if (config['fqdn_hostname'] == 'default') and (config['fqdn_ip'] == 'default'):
-      populate(info[0], info[1], info[2])
-    else:
-      populate(info[0], config['fqdn_hostname'], config['fqdn_ip'])
-
-def get_ip(ifname):
-  s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-  return socket.inet_ntoa(fcntl.ioctl(
-    s.fileno(),
-    0x8915, # SIOCGIFADDR
-    struct.pack('256s', ifname[:15])
-  )[20:24])
-
-# Main
-
-def main():
-  conf_path = './default.cfg'
-  print("Please select an option to install.\n")
-  options = [['cPanel', '1', cPanel], 
-             ['Plesk', '2', plesk], 
-             ['LAMP Stack', '3', LAMP], 
-             ['Wordpress', '4', wordpress]]
-  display = ''
-  for opt in options:
-    display = display + ('%s :: %s\n' % (opt[0], opt[1]))
-  print display
-  choice = int(raw_input("Choice: "))
-  if 1 <= choice <= (len(options)):
-    core_conf = readConfig(conf_path, 'core')
-    service_conf = readConfig(conf_path, options[choice - 1][0])
-    fqdn_check(core_conf)
-    os.system('yum update -y && yum install -y wget')
-    options[choice-1][2](service_conf)
+def add_mainline(os):
+  if os[6] == 'centos':
+    path = '/etc/yum.repos.d/nginx.repo'
+    system('touch %s' % path)
+    with open(path, 'w') as f:
+      f.write('[nginx]'
+              'name=nginx repo'
+              'baseurl=http://nginx.org/packages/mainline/%s/%s/$basearch/' % (os[:6], os[7:8])
+              'gpgcheck=0'
+              'enabled=1')
+      f.close()
   else:
-    print("Please select a valid menu option.\n\n\n")
-    main()
+    key = 'nginx_signing.key'
+    path = '/etc/apt/sources.list'
+    st = 'http://nginx.org/packages/mainline/%s/ %s nginx'
+    system('wget http://nginx.org/keys/%s' % (key))
+    system('apt-key add %s' % (key))
+    with open(path, 'w') as f:
+      f.write('deb ' + st % (os[:6])
 
-main()
