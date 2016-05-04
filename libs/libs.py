@@ -2,14 +2,56 @@ import os
 import socket
 import fcntl
 import struct
+import platform
+import yum
+
+class SysConfig(object):
+  def __init__(self):
+    self.os = None
+    self.install = None
+    self.fwstring = None
+    self.fwargs = None
+    self._set_vars()
+
+  def _set_vars(self):
+    s = platform.dist()
+    self.os = '%s %s' % (s[0], s[1][0])
+    configs = {'centos 6': {
+                  'install': yum_install,
+                  'fwargs': {
+                    'kwargs': {'table': 'INPUT',
+                                'action': 'ACCEPT',
+                                'proto': 'tcp'},
+                    'string': ("iptables -I %(table)s "
+                                  "-p %(proto)s "
+                                  "--dport %(port)s "
+                                  "-j %(action)s")}
+                   },
+               'centos 7': {
+                 'install': yum_install,
+                 'fwargs': {
+                   'kwargs': {'table': 'public',
+                              'action': 'add',
+                              'proto': 'tcp'},
+                   'string': ("firewall-cmd --zone=%(table)s "
+                                "--%(action)s-port=%(port)s/%(proto)s "
+                                "--permanant")}
+                  }
+              }
+    self.install = configs[self.os]['install']
+    self.fwstring = configs[self.os]['fwargs']['string']
+    self.fwargs = configs[self.os]['fwargs']['kwargs']
+
+# Installers
+
+def yum_install(*args):
+  yb = yum.YumBase()
+  for arg in args:
+    yb.install(name='%s' % arg)
+  yb.resolveDeps()
+  yb.processTransaction()
 
 # Networking
-
-def port_engine(service):
-  service_ports = {plesk: ['8443'], LAMP: ['80'], wordpress: ['80']}
-  if type(service) == types.FunctionType:
-    for port in service_ports[service]:
-      os.system('iptables -I INPUT 3 -p tcp --dport %s -j ACCEPT' % (port))
 
 def get_info():
   hname = socket.gethostname()
