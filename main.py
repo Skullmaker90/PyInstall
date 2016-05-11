@@ -4,27 +4,13 @@ from ast import literal_eval
 from panelInstall import cPanel, Plesk, Webmin
 from cmsInstall import LNMP
 from libs.libs import fqdn_check
-from libs.engines import system
-
-def readConfig(path):
-  with open(path, 'r') as f:
-    config = literal_eval(f.read())
-    return config
-
-class Config(object):
-  def __init__(self, path, service):
-    self.Core = None
-    self.Service = None
-    self._populate(path, service)
-
-  def _populate(self, path, service):
-    self.Core = readConfig(path)['core']
-    self.Service = readConfig(path)[service]
+from libs.systems import SysBase
 
 # Main
 
 def main():
   conf_path = './default.cfg'
+  sys = SysBase(conf_path)
   print("Please select an option to install.\n")
   options = [['cPanel', '1', cPanel], 
              ['Plesk', '2', Plesk],
@@ -36,10 +22,9 @@ def main():
   print display
   choice = int(raw_input("Choice: "))
   if 1 <= choice <= (len(options)):
-    config = Config(conf_path, options[choice-1][0])
-    fqdn_check(config.Core)
-    system('yum update -y')
-    options[choice-1][2](config.Service)
+    fqdn_check(sys.conf['core'])
+    sys.update()
+    options[choice-1][2](sys)
   else:
     print("Please select a valid menu option.\n\n\n")
     main()
