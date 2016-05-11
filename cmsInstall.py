@@ -19,20 +19,44 @@ def LNMP(sys, root_pass=None):
   port_engine(LAMP)
 
 def nginx(sys):
-  install_repo(sys)
+  install_nginx_repo(sys)
   os.install('nginx')
 
-def meriadb(root_pass):
-  services = ('mysql-server',)
-  yum_engine(services)
-  os.system("service mysqld start")
+def mariadb(root_pass, sys):
+  install_mariadb_repo(sys)
+  sys.install('MariaDB-server')
+  sys.start('mysql')
   mysql_secure(root_pass)
 
 def php():
-  services = ('php', 'php-mysql',)
-  yum_engine(services)
+  services = ('php5-fpm', 'php5-mysql',)
+  sys.install(*services)
+  sys.start('php5-fpm')
 
-def install_repo(sys):
+def install_mariadb_repo(sys):
+  if sys.distro == 'centos':
+    path = '/etc/yum.repos.d/mariadb.repo'
+    sys.system('touch %s' % path)
+    with open(path, 'a') as f:
+      f.write(
+        '[mariadb]\n'
+        'name = MariaDB\n'
+        'baseurl = http://yum.mariadb.org/10.1/{distro}{version}-amd64\n'
+        'gpgkey = https://yum.mariadb.org/RPM-GPG-KEY-MariaDB\n'
+        'gpgcheck = 0\n'
+        'enabled = 1')
+    f.close()
+  elif (sys.distro == 'Ubuntu' or sys.distro == 'Debian'):
+    sys.install('software-properties-common')
+    sys_commands = ('apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db',
+                    "add-apt-repository 'deb [arch=amd64,i386] "
+                    "http://sfo1.mirrors.digitalocean.com"
+                    "/mariadb/repo/10.1/{distro} {flavor} main'".format(distro = sys.distro.lower(), flavor = sys.flavor),
+                    'apt-get update -y')
+    for com in sys_commands:
+      sys.system(com)
+
+def install_nginx_repo(sys):
   if sys.distro == 'centos':
     path = '/etc/yum.repos.d/nginx.repo'
     sys.system("touch %s" % path)
@@ -114,11 +138,10 @@ def replace_engine(path, r_dict):
 
 # MySQL Secure Install
 
-def mysql_secure(root_pass):
-  hname = get_info()[1]
+def mysql_secure(root_pass, sys):
   secure_list = ("UPDATE mysql.user SET Password = PASSWORD('%s') WHERE User = 'root'" % (root_pass),
 		 "DROP USER ''@'localhost'",
-		 "DROP USER ''@'%s'" % (hname),
+		 "DROP USER ''@'%s'" % (sys.name),
 		 "DROP DATABASE test",
 		 "FLUSH PRIVILEGES")
   mysql(secure_list)
