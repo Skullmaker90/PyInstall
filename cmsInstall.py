@@ -118,9 +118,10 @@ def add_mainline(os):
   else:
     key = 'nginx_signing.key'
     path = '/etc/apt/sources.list'
-    st = 'http://nginx.org/packages/mainline/%s/ %s nginx'
+    st = 'http://nginx.org/packages/mainline/%s/ %s nginx' % (
     system('wget http://nginx.org/keys/%s' % (key))
     system('apt-key add %s' % (key))
     with open(path, 'w') as f:
-      f.write('deb ' + st % (os[:6])
-
+      f.write('deb ' + st % (os[:6]))
+      f.write('deb-src ' + st % (os[:6]))
+    f.close()
