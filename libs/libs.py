@@ -15,8 +15,8 @@ class SysConfig(object):
 
   def _set_vars(self):
     s = platform.dist()
-    self.os = '%s %s' % (s[0], s[1][0])
-    configs = {'centos 6': {
+    self.os = '%s %s' % (s[0], s[1][:2])
+    configs = {'centos 6.': {
                   'install': yum_install,
                   'fwargs': {
                     'kwargs': {'table': 'INPUT',
@@ -27,7 +27,7 @@ class SysConfig(object):
                                   "--dport %(port)s "
                                   "-j %(action)s")}
                    },
-               'centos 7': {
+               'centos 7.': {
                  'install': yum_install,
                  'fwargs': {
                    'kwargs': {'table': 'public',
@@ -36,7 +36,29 @@ class SysConfig(object):
                    'string': ("firewall-cmd --zone=%(table)s "
                                 "--%(action)s-port=%(port)s/%(proto)s "
                                 "--permanant")}
-                  }
+                  },
+               'Ubuntu 12': {
+                 'install': apt_get,
+                 'fwargs': {
+                    'kwargs': {'table': 'INPUT',
+                                'action': 'ACCEPT',
+                                'proto': 'tcp'},
+                    'string': ("iptables -I %(table)s "
+                                  "-p %(proto)s "
+                                  "--dport %(port)s "
+                                  "-j %(action)s")},
+                 },
+               'Ubuntu 14': {
+                 'install': apt_get,
+                 'fwargs': {
+                    'kwargs': {'table': 'INPUT',
+                                'action': 'ACCEPT',
+                                'proto': 'tcp'},
+                    'string': ("iptables -I %(table)s "
+                                  "-p %(proto)s "
+                                  "--dport %(port)s "
+                                  "-j %(action)s")}
+                 }
               }
     self.install = configs[self.os]['install']
     self.fwstring = configs[self.os]['fwargs']['string']
@@ -50,6 +72,12 @@ def yum_install(*args):
     yb.install(name='%s' % arg)
   yb.resolveDeps()
   yb.processTransaction()
+
+def apt_get(*args):
+  s = ['apt-get', 'install', '-y']
+  for arg in args:
+    s.append(arg)
+  os.system(s)
 
 # Networking
 
