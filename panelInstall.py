@@ -16,7 +16,7 @@ def Webmin(sys):
 
 # cPanel
 
-def cPanel(config):
+def cPanel(sys):
   conf = sys.conf['cPanel']
   url = conf['dl_url']
   pkgs = ('perl, gcc')
@@ -26,7 +26,7 @@ def cPanel(config):
 
 # Plesk
 
-def Plesk(config):
+def Plesk(sys):
   conf = sys.conf['Plesk']
   build = ('cd %s && curl -O %s && sh plesk-installer ' % (conf['dl_path'], conf['dl_url']) +
            '--select-product-id plesk ' +
