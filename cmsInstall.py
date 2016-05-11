@@ -2,11 +2,11 @@ import os
 import types
 from getpass import getpass
 
-from libs.engines import mysql, yum, Port_engine, system
+from libs.engines import mysql
 
 # LNMP Stack
 
-def LNMP(config, root_pass=None):
+def LNMP(sys, root_pass=None):
   if not root_pass:
     root_pass = getpass("What pass would you like to use for mysql root account?: ")
   stack = (nginx, meriadb, php)
@@ -18,9 +18,9 @@ def LNMP(config, root_pass=None):
   yum_engine(config['add_packages'])
   port_engine(LAMP)
 
-def nginx():
-  services = ('httpd',)
-  yum_engine(services)
+def nginx(sys):
+  install_repo(sys)
+  os.install('nginx')
 
 def meriadb(root_pass):
   services = ('mysql-server',)
@@ -32,10 +32,31 @@ def php():
   services = ('php', 'php-mysql',)
   yum_engine(services)
 
-def yum_engine(packages):
-  for package in packages:
-    if package is not None:
-      os.system('yum install -y %s' % (package))
+def install_repo(sys):
+  if sys.distro == 'centos':
+    path = '/etc/yum.repos.d/nginx.repo'
+    sys.system("touch %s" % path)
+    with open(path, 'a') as f:
+      f.write(
+"""[nginx]
+name=nginx repo
+baseurl=http://nginx.org/packages/mainline/{distro}/{version}/$basearch/
+gpgcheck=0
+enabled=1""".format(distro = sys.distro, version = sys.version[0]))
+    f.close()
+  elif (sys.distro == 'Ubuntu' or sys.distro == 'Debian'):
+    sys.system('wget http://nginx.org/keys/nginx_signing.key '
+               '&& apt-key add nginx_signing.key')
+    path = '/etc/apt/sources.list'
+    with open(path, 'a') as f:
+      string = (
+          """
+          deb http://nginx.org/packages/mainline/{distro}/ {flavor} nginx
+          deb-src http://nginx.org/packages/mainline/{distro}/ {flavor} nginx
+          """.format(distro = sys.distro.lower(), flavor = sys.flavor))
+      f.write(string)
+    f.close()
+    sys.system('apt-get update')
 
 # Joomla
 
@@ -101,27 +122,3 @@ def mysql_secure(root_pass):
 		 "DROP DATABASE test",
 		 "FLUSH PRIVILEGES")
   mysql(secure_list)
-
-# Adding mainline repo
-
-def add_mainline(os):
-  if os[6] == 'centos':
-    path = '/etc/yum.repos.d/nginx.repo'
-    system('touch %s' % path)
-    with open(path, 'w') as f:
-      f.write('[nginx]'
-              'name=nginx repo'
-              'baseurl=http://nginx.org/packages/mainline/%s/%s/$basearch/' % (os[:6], os[7:8])
-              'gpgcheck=0'
-              'enabled=1')
-      f.close()
-  else:
-    key = 'nginx_signing.key'
-    path = '/etc/apt/sources.list'
-    st = 'http://nginx.org/packages/mainline/%s/ %s nginx' % (
-    system('wget http://nginx.org/keys/%s' % (key))
-    system('apt-key add %s' % (key))
-    with open(path, 'w') as f:
-      f.write('deb ' + st % (os[:6]))
-      f.write('deb-src ' + st % (os[:6]))
-    f.close()
