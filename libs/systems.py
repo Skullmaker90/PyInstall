@@ -3,9 +3,13 @@ import platform
 from ast import literal_eval
 from subprocess import check_call
 
+from libs import get_info
+
 class SysBase(object):
   def __init__(self, conf_path):
     self.distro, self.version, self.flavor = platform.dist()
+    info = get_info()
+    self.name, self.ip = info[1], info[2]
     self.fire_keys = {'table': None,
                       'action': None,
                       'proto': 'tcp'}
@@ -49,6 +53,12 @@ class SysBase(object):
       self.fire_keys['port'] = port
       print("Instating rule: " + s % self.fire_keys)
       os.system(s % self.fire_keys)
+
+  def start(self, service):
+    s = 'service '
+    if (self.distro == 'centos' and self.version[0] == '7'):
+      s = 'systemctl '
+    self.system(s + service + ' start')
 
   def system(self, command):
     os.system(command)
