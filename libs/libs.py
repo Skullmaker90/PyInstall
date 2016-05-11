@@ -3,7 +3,9 @@ import socket
 import fcntl
 import struct
 import platform
-import yum
+
+if platform.dist()[0] == 'centos':
+  import yum
 
 class SysConfig(object):
   def __init__(self):
@@ -63,6 +65,15 @@ class SysConfig(object):
     self.install = configs[self.os]['install']
     self.fwstring = configs[self.os]['fwargs']['string']
     self.fwargs = configs[self.os]['fwargs']['kwargs']
+
+  def port(self, *ports):
+    for port in ports:
+      self.fwargs['port'] = port
+      os.system(self.fwstring % self.fwargs)
+
+  def install(self, *args):
+    for arg in args:
+      os.install(*arg)
 
 # Installers
 
