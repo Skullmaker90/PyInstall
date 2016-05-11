@@ -38,11 +38,11 @@ def install_repo(sys):
     sys.system("touch %s" % path)
     with open(path, 'a') as f:
       f.write(
-"""[nginx]
-name=nginx repo
-baseurl=http://nginx.org/packages/mainline/{distro}/{version}/$basearch/
-gpgcheck=0
-enabled=1""".format(distro = sys.distro, version = sys.version[0]))
+        '[nginx]\n'
+        'name=nginx repo\n'
+        'baseurl=http://nginx.org/packages/mainline/{distro}/{version}/$basearch/\n'
+        'gpgcheck=0\n'
+        'enabled=1'.format(distro = sys.distro, version = sys.version[0]))
     f.close()
   elif (sys.distro == 'Ubuntu' or sys.distro == 'Debian'):
     sys.system('wget http://nginx.org/keys/nginx_signing.key '
