@@ -3,15 +3,16 @@ import platform
 from subprocess import check_call
 
 class SysBase(object):
-  distro, version, flavor = platform.dist()
   def __init__(self):
-#    self.distro, self.version, self.flavor = platform.dist()
+    self.distro, self.version, self.flavor = platform.dist()
     self.pkg_cmd = None
     self._set_cmd()
 
   def _set_cmd(self):
     pkg_mgrs = {'centos': 'yum', 'Ubuntu': 'apt-get'}
     self.pkg_cmd = [pkg_mgrs[self.distro], 'install', '-y']
+    if self.distro == 'Ubuntu':
+      self.pkg_cmd.append('--force-yes')
 
   def install(self, *pkgs):
     cmd = self.pkg_cmd[:]
