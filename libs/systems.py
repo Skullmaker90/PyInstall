@@ -56,10 +56,10 @@ class SysBase(object):
       os.system(s % self.fire_keys)
 
   def start(self, service):
-    s = 'service '
+    s = 'service %s start' % service
     if (self.distro == 'centos' and self.version[0] == '7'):
-      s = 'systemctl '
-    self.system(s + service + ' start')
+      s = 'systemctl start %s' % service
+    self.system(s)
 
   def system(self, command):
     os.system(command)

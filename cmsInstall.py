@@ -15,7 +15,6 @@ def LNMP(sys, root_pass=None):
       block(root_pass, sys)
     else:
       block(sys)
-  sys.install(sys.config['add_packages'])
   sys.port(80)
 
 def nginx(sys):
