@@ -32,7 +32,8 @@ class SysBase(object):
       self.pkg_cmd.append('--force-yes')
 
   def update(self):
-    self.pkg_cmd[1] = 'update'
+    cmd = self.pkg_cmd[:]
+    cmd[1] = 'update'
     check_call(self.pkg_cmd)
 
   def install(self, *pkgs):
