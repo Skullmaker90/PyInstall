@@ -27,10 +27,10 @@ def mariadb(root_pass, sys):
   install_mariadb_repo(sys)
   auth = False
   if (sys.distro == 'Ubuntu' or sys.distro == 'Debian'):
-    Popen("debconf-set-selections <<< 'mysql-server mysql-server/root_password password %s'" % root_pass,
+    Popen("debconf-set-selections <<< 'maria-db-server mysql-server/root_password password %s'" % root_pass,
           shell = True,
           executable = "bash")
-    Popen("debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password %s'" % root_pass,
+    Popen("debconf-set-selections <<< 'maria-db-server mysql-server/root_password_again password %s'" % root_pass,
           shell = True,
           executable = "bash")
     auth = True
@@ -45,6 +45,7 @@ def php(sys):
     services = ('php-fpm', 'php-mysql',)
   sys.install(*services)
   sys.start('php-fpm')
+  sys.start('php5-fpm')
 
 def install_mariadb_repo(sys):
   if sys.distro == 'centos':
@@ -151,10 +152,10 @@ def replace_engine(path, r_dict):
 
 # MySQL Secure Install
 
-def mysql_secure(root_pass, sys):
+def mysql_secure(root_pass, sys, auth = False):
   secure_list = ("UPDATE mysql.user SET Password = PASSWORD('%s') WHERE User = 'root'" % (root_pass),
 		 "DROP USER ''@'localhost'",
 		 "DROP USER ''@'%s'" % (sys.name),
 		 "DROP DATABASE test",
 		 "FLUSH PRIVILEGES")
-  mysql(secure_list)
+  mysql(secure_list, auth = auth)
