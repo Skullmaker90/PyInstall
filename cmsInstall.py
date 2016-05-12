@@ -24,12 +24,19 @@ def nginx(sys):
 
 def mariadb(root_pass, sys):
   install_mariadb_repo(sys)
+  if (sys.distro == 'Ubuntu' or sys.distro == 'Debian'):
+    cmds = ("debconf-set-selections <<< 'maria-db mysql-server/root_password password %s'" % root_pass,
+            "debconf-set-selections <<< 'maria-db mysql-server/root_password_again password %s'" % root_pass)
+    sys.system(*cmds)
   sys.install('MariaDB-server')
   sys.start('mysql')
   mysql_secure(root_pass, sys)
 
 def php(sys):
-  services = ('php-fpm', 'php-mysql',)
+  if (sys.distro == 'Ubuntu' or sys.distro == 'Debian'):
+    services = ('php5-fpm', 'php5-mysqlnd')
+  else:
+    services = ('php-fpm', 'php-mysql',)
   sys.install(*services)
   sys.start('php-fpm')
 
