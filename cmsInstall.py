@@ -9,14 +9,14 @@ from libs.engines import mysql
 def LNMP(sys, root_pass=None):
   if not root_pass:
     root_pass = getpass("What pass would you like to use for mysql root account?: ")
-  stack = (nginx, meriadb, php)
+  stack = (nginx, mariadb, php)
   for block in stack:
-    if block is mysql:
-      block(root_pass)
+    if block is mariadb:
+      block(root_pass, sys)
     else:
-      block()
-  yum_engine(config['add_packages'])
-  port_engine(LAMP)
+      block(sys)
+  sys.install(config['add_packages'])
+  sys.port(80)
 
 def nginx(sys):
   install_nginx_repo(sys)
