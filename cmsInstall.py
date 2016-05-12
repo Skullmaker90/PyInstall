@@ -1,6 +1,7 @@
 import os
 import types
 from getpass import getpass
+from subprocess import Popen
 
 from libs.engines import mysql
 
@@ -24,12 +25,18 @@ def nginx(sys):
 
 def mariadb(root_pass, sys):
   install_mariadb_repo(sys)
+  auth = False
   if (sys.distro == 'Ubuntu' or sys.distro == 'Debian'):
-    cmd = ("dpkg-reconfigure -p critical dash")
-    sys.system(cmd)
+    Popen("debconf-set-selections <<< 'mysql-server mysql-server/root_password password %s'" % root_pass,
+          shell = True,
+          executable = "bash")
+    Popen("debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password %s'" % root_pass,
+          shell = True,
+          executable = "bash")
+    auth = True
   sys.install('MariaDB-server')
   sys.start('mysql')
-  mysql_secure(root_pass, sys)
+  mysql_secure(root_pass, sys, auth = auth)
 
 def php(sys):
   if (sys.distro == 'Ubuntu' or sys.distro == 'Debian'):
