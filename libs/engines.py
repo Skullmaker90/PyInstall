@@ -5,9 +5,18 @@ import types
 
 # Mysql
 
-def mysql(commands, auth=False, root_pass=None):
+def mysql(commands, auth = False, root_pass = None):
+  r = []
   q = 'mysql'
   if auth:
     q = q + (" -uroot --password='%s'" % (root_pass))
-  for command in commands:
-    os.system('%s -e "%s"' % (q, command))
+  if type(commands) is not type(''):
+    for command in commands:
+      s = '%s -e "%s"' % (q, command)
+      os.system(s)
+      r.append(s)
+  else:
+    s = '%s -e "%s"' % (q, commands)
+    os.system(s)
+    r.append(s)
+  return r
