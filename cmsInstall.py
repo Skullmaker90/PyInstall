@@ -45,7 +45,7 @@ def install_mariadb_repo(sys):
         'baseurl = http://yum.mariadb.org/10.1/{distro}{version}-amd64\n'
         'gpgkey = https://yum.mariadb.org/RPM-GPG-KEY-MariaDB\n'
         'gpgcheck = 0\n'
-        'enabled = 1')
+        'enabled = 1'.format(distro = sys.distro.lower(), version = sys.version[0]))
     f.close()
   elif (sys.distro == 'Ubuntu' or sys.distro == 'Debian'):
     sys.install('software-properties-common')

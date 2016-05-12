@@ -34,7 +34,7 @@ class SysBase(object):
   def update(self):
     cmd = self.pkg_cmd[:]
     cmd[1] = 'update'
-    check_call(self.pkg_cmd)
+    check_call(cmd)
 
   def install(self, *pkgs):
     cmd = self.pkg_cmd[:]
