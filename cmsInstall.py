@@ -15,23 +15,24 @@ def LNMP(sys, root_pass=None):
       block(root_pass, sys)
     else:
       block(sys)
-  sys.install(config['add_packages'])
+  sys.install(sys.config['add_packages'])
   sys.port(80)
 
 def nginx(sys):
   install_nginx_repo(sys)
-  os.install('nginx')
+  sys.install('nginx')
+  sys.start('nginx')
 
 def mariadb(root_pass, sys):
   install_mariadb_repo(sys)
   sys.install('MariaDB-server')
   sys.start('mysql')
-  mysql_secure(root_pass)
+  mysql_secure(root_pass, sys)
 
-def php():
-  services = ('php5-fpm', 'php5-mysql',)
+def php(sys):
+  services = ('php-fpm', 'php-mysql',)
   sys.install(*services)
-  sys.start('php5-fpm')
+  sys.start('php-fpm')
 
 def install_mariadb_repo(sys):
   if sys.distro == 'centos':
