@@ -64,4 +64,7 @@ class SysBase(object):
   def system(self, command):
     os.system(command)
 
+  def is_deb(self):
+    return (self.distro == 'Ubuntu' or self.distro == 'Debian')
+
 __name__ = 'SystemConfigClass'

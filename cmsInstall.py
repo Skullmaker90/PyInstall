@@ -1,5 +1,6 @@
 import os
 import types
+import time
 from getpass import getpass
 from subprocess import Popen
 
@@ -26,10 +27,11 @@ def nginx(sys):
 def mariadb(root_pass, sys):
   install_mariadb_repo(sys)
   auth = False
-  if (sys.distro == 'Ubuntu' or sys.distro == 'Debian'):
+  if sys.is_deb():
     Popen("debconf-set-selections <<< 'maria-db-server mysql-server/root_password password %s'" % root_pass,
           shell = True,
           executable = "bash")
+    time.sleep(5)
     Popen("debconf-set-selections <<< 'maria-db-server mysql-server/root_password_again password %s'" % root_pass,
           shell = True,
           executable = "bash")
@@ -39,7 +41,7 @@ def mariadb(root_pass, sys):
   mysql_secure(root_pass, sys, auth = auth)
 
 def php(sys):
-  if (sys.distro == 'Ubuntu' or sys.distro == 'Debian'):
+  if sys.is_deb():
     services = ('php5-fpm', 'php5-mysqlnd')
   else:
     services = ('php-fpm', 'php-mysql',)
@@ -60,7 +62,7 @@ def install_mariadb_repo(sys):
         'gpgcheck = 0\n'
         'enabled = 1'.format(distro = sys.distro.lower(), version = sys.version[0]))
     f.close()
-  elif (sys.distro == 'Ubuntu' or sys.distro == 'Debian'):
+  elif sys.is_deb():
     sys.install('software-properties-common')
     sys_commands = ('apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db',
                     "add-apt-repository 'deb [arch=amd64,i386] "
@@ -82,7 +84,7 @@ def install_nginx_repo(sys):
         'gpgcheck=0\n'
         'enabled=1'.format(distro = sys.distro, version = sys.version[0]))
     f.close()
-  elif (sys.distro == 'Ubuntu' or sys.distro == 'Debian'):
+  elif sys.is_deb():
     sys.system('wget http://nginx.org/keys/nginx_signing.key '
                '&& apt-key add nginx_signing.key')
     path = '/etc/apt/sources.list'
