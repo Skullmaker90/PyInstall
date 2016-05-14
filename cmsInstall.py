@@ -105,26 +105,31 @@ def install_nginx_repo(sys):
 # Wordpress
 
 def wordpress(sys):
-  config = sys.config['Wordpress']
-  url = config['dl_url']
+  wp_config = sys.conf['Wordpress']
+  nginx_config = sys.conf['nginx']
+  url = wp_config['dl_url']
   root_pass = getpass("Please choose a password for the ROOT MySQL user: ")
   wp_pass = getpass("Please choose a password for the Wordpress MySQL user: ")
-  LNMP(config, root_pass=root_pass)
-  get_wordpress(url, config['extract_path'])
+  LNMP(sys, root_pass=root_pass)
+  get_wordpress(url, wp_config['extract_path'])
   set_database(root_pass, wp_pass)
-  set_config(config['wp_user'], 
-             config['wp_database'], 
+  set_config(wp_config['wp_user'], 
+             wp_config['wp_database'], 
              wp_pass, 
-             config['extract_path'])
-  os.system("cp -r /home/wordpress/* /var/www/html")
-  os.system('touch /var/www/html/.htaccess')
-  with open('/var/www/html/.htaccess', 'r+') as f:
+             wp_config['extract_path'])
+  os.system("cp -r /home/wordpress/* /usr/share/nginx/html")
+  os.system('touch /usr/share/nginx/html/.htaccess')
+  with open('/usr/share/nginx/html/.htaccess', 'r+') as f:
     f.write('DirectoryIndex index.php index.htm')
+  nginx_rdict = {'{root}': nginx_config['path'],
+                 '{server_name}': sys.hostname}
+  replace_engine('./docs/nginx_default.conf', nginx_rdict)
+  sys.system('mv ./docs/nginx_default.conf /etc/nginx/conf.d/default.conf')
   sys.port(80)
   if sys.distro + ' ' + sys.version[0] == 'centos 7':
-    os.system("systemctl restart httpd")
+    os.system("systemctl restart nginx")
   else:
-    os.system("service httpd restart")
+    os.system("service nginx restart")
   
 def get_wordpress(url, path):
   os.system("cd %s && wget %s" % (path, url))
