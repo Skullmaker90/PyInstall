@@ -9,7 +9,7 @@ def mysql(commands, auth = False, root_pass = None):
   r = []
   q = 'mysql'
   if auth:
-    q = q + (" -uroot --password='%s'" % (root_pass))
+    q = q + (" -uroot -p%s" % (root_pass))
   if type(commands) is not type(''):
     for command in commands:
       s = '%s -e "%s"' % (q, command)
