@@ -104,11 +104,12 @@ def install_nginx_repo(sys):
 
 # Wordpress
 
-def wordpress(config):
+def wordpress(sys):
+  config = sys.config['Wordpress']
   url = config['dl_url']
   root_pass = getpass("Please choose a password for the ROOT MySQL user: ")
   wp_pass = getpass("Please choose a password for the Wordpress MySQL user: ")
-  LAMP(config, root_pass=root_pass)
+  LNMP(config, root_pass=root_pass)
   get_wordpress(url, config['extract_path'])
   set_database(root_pass, wp_pass)
   set_config(config['wp_user'], 
@@ -119,8 +120,11 @@ def wordpress(config):
   os.system('touch /var/www/html/.htaccess')
   with open('/var/www/html/.htaccess', 'r+') as f:
     f.write('DirectoryIndex index.php index.htm')
-  port_engine(wordpress)
-  os.system("service httpd restart")
+  sys.port(80)
+  if sys.distro + ' ' + sys.version[0] == 'centos 7':
+    os.system("systemctl restart httpd")
+  else:
+    os.system("service httpd restart")
   
 def get_wordpress(url, path):
   os.system("cd %s && wget %s" % (path, url))
@@ -133,7 +137,7 @@ def set_database(root_pass, wp_pass):
 		"SET PASSWORD FOR 'wp_user'@'localhost' = PASSWORD('%s')" % (wp_pass),
 		"GRANT ALL PRIVILEGES ON wordpress.* TO 'wp_user'@'localhost' IDENTIFIED BY '%s'" % (wp_pass),
 		"FLUSH PRIVILEGES")
-  mysql_bash_engine(comm_list, auth=True, root_pass=root_pass)
+  mysql(comm_list, auth=True, root_pass=root_pass)
 
 def set_config(wp_user, wp_database, wp_pass, path):
   path = path + '/wordpress'
