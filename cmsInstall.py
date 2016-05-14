@@ -160,4 +160,4 @@ def mysql_secure(root_pass, sys, auth = False):
 		 "DROP USER ''@'%s'" % (sys.name),
 		 "DROP DATABASE test",
 		 "FLUSH PRIVILEGES")
-  mysql(secure_list, auth = auth)
+  mysql(secure_list, auth = auth, root_pass = root_pass)
