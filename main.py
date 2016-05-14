@@ -9,7 +9,7 @@ from libs.systems import SysBase
 # Main
 
 def main():
-  conf_path = './default.cfg'
+  conf_path = './docs/default.cfg'
   sys = SysBase(conf_path)
   print("Please select an option to install.\n")
   options = [['cPanel', '1', cPanel], 
