@@ -62,7 +62,7 @@ def nginx_config(html_path, sys):
 def php_config(sys):
   php_rdict = {'/var/run/php5-fpm.sock': '127.0.0.1:9000'}
   if sys.is_deb():
-    path = '/etc/php'
+    path = '/etc/php5/fpm/pool.d/www.conf'
   else:
     path = '/etc/php-fpm.d/www.conf'
   replace(path, php_rdict)
@@ -130,8 +130,7 @@ def install_nginx_repo(sys):
 
 def wordpress(sys):
   wp_config = sys.conf['Wordpress']
-  nginx_config = sys.conf['nginx']
-  html_path = nginx_config['html_path']
+  html_path = sys.conf['nginx']['html_path']
   url = wp_config['dl_url']
   root_pass = getpass("Please choose a password for the ROOT MySQL user: ")
   wp_pass = getpass("Please choose a password for the Wordpress MySQL user: ")

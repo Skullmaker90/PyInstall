@@ -2,7 +2,7 @@ import os
 from ast import literal_eval
 
 from panelInstall import cPanel, Plesk, Webmin
-from cmsInstall import LNMP
+from cmsInstall import LNMP, wordpress
 from libs.libs import fqdn_check
 from libs.systems import SysBase
 
@@ -15,7 +15,8 @@ def main():
   options = [['cPanel', '1', cPanel], 
              ['Plesk', '2', Plesk],
              ['Webmin', '3', Webmin],
-             ['LNMP Stack', '4', LNMP]]
+             ['LNMP Stack', '4', LNMP],
+             ['Wordpress', '5', wordpress]]
   display = ''
   for opt in options:
     display = display + ('%s :: %s\n' % (opt[0], opt[1]))
