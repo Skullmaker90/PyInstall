@@ -20,3 +20,14 @@ def mysql(commands, auth = False, root_pass = None):
     os.system(s)
     r.append(s)
   return r
+
+# Replace 
+
+def replace(path, r_dict):
+  data = None
+  with open(path, 'r') as f:
+    data = f.read()
+  for key, value in r_dict.items():
+    data = data.replace(key, value)
+  with open(path, 'w') as f:
+    f.write(data)

@@ -61,8 +61,9 @@ class SysBase(object):
       s = 'systemctl start %s' % service
     self.system(s)
 
-  def system(self, command):
-    os.system(command)
+  def system(self, *commands):
+    for command in commands:
+      os.system(command)
 
   def is_deb(self):
     return (self.distro == 'Ubuntu' or self.distro == 'Debian')

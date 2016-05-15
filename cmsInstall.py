@@ -1,10 +1,11 @@
 import os
 import types
 import time
+import tarfile
 from getpass import getpass
 from subprocess import Popen
 
-from libs.engines import mysql
+from libs.engines import mysql, replace
 
 # LNMP Stack
 
@@ -48,6 +49,30 @@ def php(sys):
   sys.install(*services)
   sys.start('php-fpm')
   sys.start('php5-fpm')
+
+# Configuration Functions
+
+def nginx_config(html_path, sys):
+  nginx_rdict = {'{root}': html_path,
+                 '{server_name}': sys.name}
+  replace('./docs/nginx_default.conf', nginx_rdict)
+  sys.system('mv ./docs/nginx_default.conf /etc/nginx/conf.d/default.conf')
+  sys.system("service nginx restart")
+
+def php_config(sys):
+  php_rdict = {'/var/run/nginx.sock': '127.0.0.1:9000'}
+  if sys.is_deb():
+    path = '/etc/php'
+  else:
+    path = '/etc/php-fpm.d/www.conf'
+  replace(path, php_rdict)
+  service = 'php-fpm'
+  if sys.is_deb():
+    service = 'php5-fpm'
+  sys.system('service %s restart' % service)
+
+
+# Repo Installation
 
 def install_mariadb_repo(sys):
   if sys.distro == 'centos':
@@ -107,6 +132,7 @@ def install_nginx_repo(sys):
 def wordpress(sys):
   wp_config = sys.conf['Wordpress']
   nginx_config = sys.conf['nginx']
+  html_path = nginx_config['html_path']
   url = wp_config['dl_url']
   root_pass = getpass("Please choose a password for the ROOT MySQL user: ")
   wp_pass = getpass("Please choose a password for the Wordpress MySQL user: ")
@@ -117,19 +143,13 @@ def wordpress(sys):
              wp_config['wp_database'], 
              wp_pass, 
              wp_config['extract_path'])
-  os.system("cp -r /home/wordpress/* /usr/share/nginx/html")
-  os.system('touch /usr/share/nginx/html/.htaccess')
-  with open('/usr/share/nginx/html/.htaccess', 'r+') as f:
+  os.system('cp -r %s/wordpress/* %s' % (wp_config['extract_path'], html_path))
+  os.system('touch %s/.htaccess' % html_path)
+  with open('%s/.htaccess' % html_path, 'r+') as f:
     f.write('DirectoryIndex index.php index.htm')
-  nginx_rdict = {'{root}': nginx_config['path'],
-                 '{server_name}': sys.hostname}
-  replace_engine('./docs/nginx_default.conf', nginx_rdict)
-  sys.system('mv ./docs/nginx_default.conf /etc/nginx/conf.d/default.conf')
+  nginx_config(html_path, sys)
+  php_config(sys)
   sys.port(80)
-  if sys.distro + ' ' + sys.version[0] == 'centos 7':
-    os.system("systemctl restart nginx")
-  else:
-    os.system("service nginx restart")
   
 def get_wordpress(url, path):
   os.system("cd %s && wget %s" % (path, url))
@@ -150,16 +170,7 @@ def set_config(wp_user, wp_database, wp_pass, path):
 		'username_here': wp_user,
 		'password_here': wp_pass}
   os.system("cp %s/wp-config-sample.php %s/wp-config.php" % (path, path))
-  replace_engine(path + '/wp-config.php', settings)
-
-def replace_engine(path, r_dict):
-  data = None
-  with open(path, 'r') as f:
-    data = f.read()
-  for key, value in r_dict.items():
-    data = data.replace(key, value)
-  with open(path, 'w') as f:
-    f.write(data)
+  replace(path + '/wp-config.php', settings)
 
 # MySQL Secure Install
 
