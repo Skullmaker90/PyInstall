@@ -60,7 +60,7 @@ def nginx_config(html_path, sys):
   sys.system("service nginx restart")
 
 def php_config(sys):
-  php_rdict = {'/var/run/nginx.sock': '127.0.0.1:9000'}
+  php_rdict = {'/var/run/php5-fpm.sock': '127.0.0.1:9000'}
   if sys.is_deb():
     path = '/etc/php'
   else:
@@ -70,7 +70,6 @@ def php_config(sys):
   if sys.is_deb():
     service = 'php5-fpm'
   sys.system('service %s restart' % service)
-
 
 # Repo Installation
 
