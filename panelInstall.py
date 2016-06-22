@@ -1,5 +1,6 @@
 import os
 
+<<<<<<< HEAD
 # Webmin
 
 def Webmin(sys):
@@ -13,6 +14,12 @@ def Webmin(sys):
             "rpm --Uvh webmin-*.rpm")
   sys.system(*sh)
   sys.port(10000)
+=======
+def readConfig(path, service):
+  with open(path, 'r') as f:
+    config = literal_eval(f.read())
+    return config[service]
+>>>>>>> master
 
 # cPanel
 
