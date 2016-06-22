@@ -1,7 +1,7 @@
 Introduction
 ======
 
-This is a script to be deployed on new Centos 6 servers to allow a "One-Click" install of cPanel, Plesk, Wordpress, and LAMP Stack. 
+This is a script to be deployed on new Centos 6 servers to allow a "One-Click" install of cPanel, Plesk, Wordpress, Webmin, Joomba, PrestaShop and LNMP Stack. 
 This was orignally written by Anthony Smith on 4/24/2016 and will be updated and expanded periodically according to needs. Please 
 direct all questions/concerns/suggestions to asmith@cari.net.
 
@@ -10,7 +10,7 @@ Installation
 
 There's a couple ways to download the script but the quickest would be to curl it. Since gitlab requires auth I'll be using my public 
 github to host the file. To download using curl just cd to the desired directory and `curl -O https://raw.githubusercontent.com
-/Skullmaker90/PyInstall/master/panelInstall.py` and do the same for the default-config.cfg file (or copy/paste it into a file named that.)
+/Skullmaker90/PyInstall/master/dl.py` and run it with `python dl.py`
 
 Usage
 =======
@@ -20,7 +20,7 @@ Once downloaded usage is as easy as `python panelinstall.py` and selecting an op
 cPanel
 -----------
 
-Downloads the latest installer to the /home directory and runs it using default settings. It seems as though cPanel opens it's own ports 
+Downloads the latest installer to the configured directory and runs it using default settings. It seems as though cPanel opens it's own ports 
 so no needed to run anything through the port_engine.
 
 Plesk
