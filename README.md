@@ -1,9 +1,11 @@
+I am no longer working on this project as interests have moved forward from server installation automation.
+
 Introduction
 ======
 
 This is a script to be deployed on new Centos 6 servers to allow a "One-Click" install of cPanel, Plesk, Wordpress, Webmin, Joomba, PrestaShop and LNMP Stack. 
 This was orignally written by Anthony Smith on 4/24/2016 and will be updated and expanded periodically according to needs. Please 
-direct all questions/concerns/suggestions to asmith@cari.net.
+direct all questions/concerns/suggestions to asmith@init1.us.
 
 Installation
 =======
